@@ -9,10 +9,13 @@ const { GraphQLID, GraphQLNonNull, GraphQLObjectType, GraphQLSchema, GraphQLList
 
 const studentType = require('./types/studentType')(GraphQL);
 const schoolType = require('./types/schoolType')(GraphQL);
+const teacherType = require('./types/teacherType')(GraphQL);
 const StudentService = require('./services/studentService');
 const studentService =  new StudentService(db);
 const SchoolService =  require('./services/schoolService');
 const schoolService =  new SchoolService(db);
+const TeacherService =  require('./services/teacherService');
+const teacherService =  new TeacherService(db);
 
 const RootQuery = new GraphQLObjectType({
   name: 'Query',
@@ -23,6 +26,13 @@ const RootQuery = new GraphQLObjectType({
       },
       getStudents: {
         type: GraphQLList(studentType)
+      },
+      getTeacher: {
+          type: teacherType,
+          args: {id: {type: new GraphQLNonNull(GraphQLID)}}
+      },
+      getTeachers: {
+        type: GraphQLList(teacherType)
       },
       getSchool: {
         type: schoolType,
@@ -35,38 +45,52 @@ const RootQuery = new GraphQLObjectType({
 })
 
 const Mutation = new GraphQLObjectType({
-  name: 'Mutation',
-  fields: {
+    name: 'Mutation',
+    fields: {
       createStudent: {
-          type: studentType,
-          args: {
-            FirstName: {type: GraphQLString},
-            LastName: {type: GraphQLString},
-            SchoolId: {type: GraphQLID}
-          }
+        type: studentType,
+        args: {
+          FirstName: { type: GraphQLString },
+          LastName: { type: GraphQLString },
+          SchoolId: { type: GraphQLID }
+        }
       },
       createSchool: {
-        type: schoolType,
+        type: studentType,
         args: {
-          Name: {type: GraphQLString},
-          Address: {type: GraphQLString},
-          Description: {type: GraphQLString}
+          Name: { type: GraphQLString },
+          Address: { type: GraphQLString },
+          Description: { type: GraphQLString }
+        }
+      },
+      createTeacher: {
+        type: teacherType,
+        args: {
+          FirstName: { type: GraphQLString },
+          LastName: { type: GraphQLString },
+          SchoolId: { type: GraphQLID }
         }
       },
       deleteStudent: {
         type: studentType,
         args: {
-          id: {type: GraphQLID}
+          id: { type: GraphQLID }
         }
       },
       deleteSchool: {
         type: schoolType,
         args: {
-          id: {type: GraphQLID}
+          id: { type: GraphQLID }
+        }
+      },
+      deleteTeacher: {
+        type: teacherType,
+        args: {
+          id: { type: GraphQLID }
         }
       }
-  }
-})
+    }
+  });  
 
 const schema =  new GraphQLSchema({
   query: RootQuery,
@@ -82,6 +106,10 @@ var root = {
   getSchools: async () => await schoolService.getAll(),
   createSchool: async({Name, Address, Description}) => await schoolService.create(Name, Address, Description),
   deleteSchool: async({id}) => await schoolService.delete(id),
+  getTeacher: async ({id}) => await teacherService.get(id),
+  getTeachers: async () => await teacherService.getAll(),
+  createTeacher: async({FirstName, LastName, SchoolId}) => await teacherService.create(FirstName, LastName, SchoolId),
+  deleteTeacher: async({id}) => await teacherService.delete(id),
 };
 
 var app = express();
