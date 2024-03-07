@@ -46,7 +46,7 @@ const Mutation = new GraphQLObjectType({
           }
       },
       createSchool: {
-        type: studentType,
+        type: schoolType,
         args: {
           Name: {type: GraphQLString},
           Address: {type: GraphQLString},
