@@ -1,6 +1,9 @@
+require('dotenv').config()
 var express = require('express');
 var { graphqlHTTP } = require('express-graphql');
 var { buildSchema } = require('graphql');
+var db = require("./models");
+db.sequelize.sync({ force: false })
 
 // Construct a schema, using GraphQL schema language
 var schema = buildSchema(`
