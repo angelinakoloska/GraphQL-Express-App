@@ -1,22 +1,31 @@
 require('dotenv').config()
-var express = require('express');
-var { graphqlHTTP } = require('express-graphql');
-var { buildSchema } = require('graphql');
 var db = require("./models");
 db.sequelize.sync({ force: false })
 
-// Construct a schema, using GraphQL schema language
-var schema = buildSchema(`
-  type Query {
-    hello: String
-  }
-`);
+var express = require('express');
+var { graphqlHTTP } = require('express-graphql');
+const GraphQL = require('graphql');
+const { GraphQLID, GraphQLNonNull, GraphQLObjectType, GraphQLSchema } = GraphQL;
 
-// The root provides a resolver function for each API endpoint
+const studentType = require('./types/studentType')(GraphQL);
+const StudentService =  require('./services/studentService');
+const studentService =  new StudentService(db);
+
+const RootQuery = new GraphQLObjectType({
+  name: 'Query',
+  fields: {
+      getStudent: {
+          type: studentType,
+          args: {id: {type: new GraphQLNonNull(GraphQLID)}}
+      }
+  }
+})
+const schema =  new GraphQLSchema({
+  query: RootQuery
+})
+
 var root = {
-  hello: () => {
-    return 'Hello world!';
-  },
+  getStudent: async ({id}) => await studentService.get(id),
 };
 
 var app = express();
@@ -25,5 +34,5 @@ app.use('/graphql', graphqlHTTP({
   rootValue: root,
   graphiql: true,
 }));
-app.listen(4000);
-console.log('Running a GraphQL API server at http://localhost:4000/graphql');
+app.listen(process.env.PORT);
+console.log('Running a GraphQL API server at http://localhost:3000/graphql');
